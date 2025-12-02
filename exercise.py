@@ -60,12 +60,30 @@ class Profiler:
         >>> p.longest_run('TATC')
         5
         """
-        return -1
+        seq_len: int = len(self.seq)
+        subseq_len: int = len(subseq)
+        longest_run: int = 0
+        i: int = 0
 
-    def match_suspect(self,
-                      suspect_name: str,
-                      dna_fpr: dict[str, int]) -> bool:
-        """True if the dna_fpr associated to suspect_name can be found exactly in the DNA sequence. 
+        while i <= (seq_len - subseq_len):
+            current_run: int = 0
+
+            while self.seq[i : i + subseq_len] == subseq:
+                current_run += 1
+                i += subseq_len
+                if i > (seq_len - subseq_len):
+                    break
+
+            if current_run == 0:
+                i = i + 1
+            else:
+                if current_run > longest_run:
+                    longest_run = current_run
+
+        return longest_run
+
+    def match_suspect(self, suspect_name: str, dna_fpr: dict[str, int]) -> bool:
+        """True if the dna_fpr associated to suspect_name can be found exactly in the DNA sequence.
 
         >>> p = Profiler('AGACGGGTTACCATGACTATCTATCTATCTATCTATCTATCTATCTATCACGTACGTACGTATCGAGATAGATAGATAGATAGATCCTCGACTTCGATCGCAATGAATGCCAATAGACAAAA')
         >>> p.match_suspect('Cain', {'AGAT':5, 'AATG':2, 'TATC':8})
@@ -73,4 +91,11 @@ class Profiler:
         >>> p.match_suspect('Abel', {'AGAT':3, 'AATG':7, 'TATC':4})
         False
         """
-        pass
+        matched: bool = True
+
+        for repeat, count in dna_fpr.items():
+            if self.longest_run(repeat) != count:
+                matched = False
+                break
+
+        return matched
